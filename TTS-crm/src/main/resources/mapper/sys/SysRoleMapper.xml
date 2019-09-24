@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tedu.sys.dao.SysRoleDao">
+
+
+	<!-- 查询角色id与名称 -->
+	<select id="findRoles"
+		resultType="com.tedu.common.vo.CheckRolesBox">
+		select id,name from sys_roles
+	</select>
+
+	<!-- 修改角色数据 -->
+	<update id="updateObject">
+		update sys_roles
+		<set>
+			<if test="name!=null and name!=''">
+				name = #{name},
+			</if>
+			<if test="note!=null and note!=''">
+				note = #{note},
+			</if>
+			<if test="modifiedUser!=null and modifiedUser!=''">
+				modifiedUser = #{modifiedUser},
+			</if>
+			modifiedTime=now()
+		</set>
+		where id = #{id}
+	</update>
+
+	<!-- 基于roleId查询角色名称,备注以及拥有的菜单ID -->
+	<select id="findObjectById" resultMap="sysRoleMenuVo">
+		select id,name,note
+		from
+		sys_roles
+		where id=#{id}
+	</select>
+
+	<!-- 角色与菜单ID是一对多的关系 -->
+	<!-- "menuIds" 为实体类中的字段 "id"为上一级的查询结果与下一级的条件 -->
+	<resultMap type="com.tedu.common.vo.SysRoleMenuVo"
+		id="sysRoleMenuVo">
+		<collection property="menuIds" column="id"
+			select="com.tedu.sys.dao.SysRoleMenuDao.findMenuIdsByRoleId" />
+	</resultMap>
+
+
+	<!-- useGeneratedKeys在执行添加记录之后可以获取到数据库自动生成的主键ID。 -->
+	<!-- 本次insert操作结束要将写入到数据库的主键 id值存储到参数对象的id属性上. 1)useGeneratedKeys 表示使用自增长主键值 
+		2)keyProperty对象参数对象的set方法 -->
+	<insert id="saveObject"
+		parameterType="com.tedu.sys.entity.SysRole" useGeneratedKeys="true"
+		keyProperty="id" keyColumn="id">
+		insert into sys_roles
+		(id,name,note,createdTime,modifiedTime,
+		createdUser,modifiedUser)
+		values
+		(null,#{name},#{note},now(),now(),
+		#{createdUser},#{modifiedUser})
+	</insert>
+
+	<!-- 参数name当做条件,公共片段进行提取 -->
+	<sql id="queryWhereName">
+		<where>
+			<if test="name != null and name != ''">
+				name like concat("%",#{name},"%")
+			</if>
+		</where>
+	</sql>
+
+	<!-- 获取角色总记录数 -->
+	<select id="getRowCount" resultType="int">
+		select count(*) from sys_roles
+		<include refid="queryWhereName" />
+	</select>
+
+	<!-- 基于条件查询role记录 -->
+	<select id="findPageObjects"
+		resultType="com.tedu.sys.entity.SysRole">
+		select * from sys_roles
+		<include refid="queryWhereName" />
+		order by createdTime desc
+		limit #{startIndex},#{pageSize}
+	</select>
+
+
+</mapper>

@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tedu.sys.dao.SysUserDeptDao">
+
+	<select id="findObjectById" resultMap="sysUserDeptVo">
+		select *
+		from sys_users
+		where id=#{id}
+	</select>
+
+	<!--用户与部门是多对一的关系 基于部门id查询部门名称 ,type放入实体类路径 -->
+	<resultMap type="com.tedu.common.vo.SysUserDeptVo"
+		id="sysUserDeptVo">
+		<association property="sysDept" column="deptId"
+			select="com.tedu.sys.dao.SysDeptDao.findById"></association>
+	</resultMap>
+	<!-- 基于username模糊查询天条件进行提取 -->
+	<sql id="findWhereName">
+		<where>
+			<if test="username != null and username != ''">
+				concat("%",#{username},"%")
+			</if>
+		</where>
+	</sql>
+	<!-- 查询用户以及对应部门名称 -->
+	<select id="findPageObjects" resultMap="sysUserDeptVo">
+		select * from sys_users
+		<include refid="findWhereName" />
+		order by modifiedTime desc
+		limit #{startIndex},#{pageSize}
+	</select>
+
+</mapper>

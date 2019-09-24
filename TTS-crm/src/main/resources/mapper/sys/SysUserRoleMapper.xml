@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tedu.sys.dao.SysUserRoleDao">
+
+	<!-- 基于用户id查询角色ids -->
+	<select id="findRoleIdsByUserId" resultType="int">
+		select role_id from
+		sys_user_roles
+		where user_id = #{id}
+	</select>
+
+	<!-- 基于用户id为用户赋予角色 -->
+	<insert id="insertObject" useGeneratedKeys="true" keyColumn="id">
+		insert into sys_user_roles
+		(user_id,role_id)
+		values
+		<foreach collection="roleIds" item="item" separator=",">
+			(#{id},#{item})
+		</foreach>
+	</insert>
+
+</mapper>
